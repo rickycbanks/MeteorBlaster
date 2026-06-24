@@ -1,0 +1,31 @@
+# LÖVE build artifacts
+*.love
+*.AppImage
+*.exe
+*.dmg
+
+# Downloaded LÖVE binaries
+love-11.5-x86_64.AppImage
+love-11.5-win64.zip
+love.exe
+
+# IDE / Editor
+.opencode/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build directories
+build/
+dist/
+out/
+
+# Temporary files
+*.tmp
+*.log
