@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Linux AppImage ────────────────────────────────────────────
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .love file
+        run: |
+          zip -r MeteorBlaster.love . \
+            -x ".github/*" \
+            -x ".opencode/*" \
+            -x ".git/*" \
+            -x "love.AppImage" \
+            -x "*.exe"
+
+      - name: Download LÖVE 11.5
+        run: |
+          wget -q https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage
+
+      - name: Fuse AppImage
+        run: |
+          cat love-11.5-x86_64.AppImage MeteorBlaster.love > MeteorBlaster-Linux.AppImage
+          chmod +x MeteorBlaster-Linux.AppImage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeteorBlaster-Linux
+          path: MeteorBlaster-Linux.AppImage
+          if-no-files-found: error
+
+  # ── Windows EXE ───────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .love file
+        shell: bash
+        run: |
+          7z a -tzip MeteorBlaster.love . \
+            -x!.github \
+            -x!.opencode \
+            -x!.git \
+            -x!love.AppImage \
+            -x!*.exe
+
+      - name: Download LÖVE 11.5
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://github.com/love2d/love/releases/download/11.5/love-11.5-win64.zip" `
+            -OutFile "love.zip"
+
+      - name: Extract love.exe
+        shell: pwsh
+        run: |
+          Expand-Archive -Path love.zip -DestinationPath love-extracted
+
+      - name: Fuse EXE
+        shell: cmd
+        run: |
+          copy /b love-extracted\love-11.5-win64\love.exe+MeteorBlaster.love MeteorBlaster.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeteorBlaster-Windows
+          path: MeteorBlaster.exe
+          if-no-files-found: error
+
+  # ── Create GitHub Release ─────────────────────────────────────
+  create-release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MeteorBlaster-Linux
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MeteorBlaster-Windows
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            MeteorBlaster-Linux.AppImage
+            MeteorBlaster.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: true

@@ -122,8 +122,8 @@ git push -u origin main
 
 ### Questions
 
-> - Include a macOS job as a placeholder, or skip entirely?
-> - Run workflow on every push to `main`, or only on tags?
+> - ~~Include a macOS job as a placeholder, or skip entirely?~~ → **Decided: Skip macOS**
+> - ~~Run workflow on every push to `main`, or only on tags?~~ → **Decided: Tags only (`v*`) + manual dispatch**
 
 ---
 
